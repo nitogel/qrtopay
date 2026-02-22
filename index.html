@@ -55,7 +55,7 @@
             return;
         }
 
-        const dataStr = `BCB\n002\n1\nUCT\n\n${recipient}\n${account}\n${amount}\n${edrpo}\n\n\n${purpose}\n`;
+        const dataStr = `BCD\n002\n1\nUCT\n\n${recipient}\n${account}\nUAH${amount}\n\n${edrpo}\n${purpose}\n`;
         const encodedData = btoa(unescape(encodeURIComponent(dataStr))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
         const qrUrl = `https://bank.gov.ua/qr/${encodedData}`;
 

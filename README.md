@@ -24,6 +24,26 @@ Fill in the form fields and click **Згенерувати QR-код**:
 
 The generated QR code encodes a `https://bank.gov.ua/qr/<payload>` URL that any Ukrainian banking app can scan to pre-fill a transfer.
 
+## Pre-filling via URL Query Parameters
+
+All form fields can be pre-filled by passing query parameters:
+
+| Parameter | Field |
+|---|---|
+| `iban` | IBAN |
+| `edrpo` | ЄДРПОУ / РНОКПП |
+| `recipient` | Отримувач |
+| `amount` | Сума |
+| `purpose` | Призначення платежу |
+
+Example:
+
+```
+index.html?iban=UA213223130000026007233566001&recipient=Іван%20Петренко&amount=150&purpose=Оплата%20послуг&edrpo=12345678
+```
+
+Only the provided parameters are applied; omitted ones leave their inputs empty.
+
 ## QR Payload Format
 
 The payload follows the [NBU specification](NBU.md) — 13 newline-separated fields, Base64url-encoded:

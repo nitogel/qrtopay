@@ -1,0 +1,11 @@
+{
+  "scripts": {
+    "build": "esbuild node_modules/qrcode/lib/browser.js --bundle --format=iife --global-name=QRCode --minify --outfile=qrcode.bundle.js"
+  },
+  "dependencies": {
+    "qrcode": "^1.5.4"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.12"
+  }
+}

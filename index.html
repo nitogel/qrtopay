@@ -120,21 +120,36 @@
         return false;
     }
 
+    const paramToId = {
+        iban:      'account',
+        edrpo:     'edrpo',
+        recipient: 'recipient',
+        amount:    'amount',
+        purpose:   'purpose',
+    };
+
+    function syncParamsToURL() {
+        const params = new URLSearchParams();
+        for (const [param, id] of Object.entries(paramToId)) {
+            const value = document.getElementById(id).value;
+            if (value) params.set(param, value);
+        }
+        const query = params.toString();
+        history.replaceState(null, '', query ? '?' + query : window.location.pathname);
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
-        var params = new URLSearchParams(window.location.search);
-        var mapping = {
-            iban:      'account',
-            edrpo:     'edrpo',
-            recipient: 'recipient',
-            amount:    'amount',
-            purpose:   'purpose'
-        };
-        Object.keys(mapping).forEach(function (param) {
-            var value = params.get(param);
-            if (value !== null) {
-                document.getElementById(mapping[param]).value = value;
-            }
-        });
+        // Pre-fill from URL
+        const params = new URLSearchParams(window.location.search);
+        for (const [param, id] of Object.entries(paramToId)) {
+            const value = params.get(param);
+            if (value !== null) document.getElementById(id).value = value;
+        }
+
+        // Keep URL in sync as user edits
+        for (const id of Object.values(paramToId)) {
+            document.getElementById(id).addEventListener('input', syncParamsToURL);
+        }
     });
 </script>
 </body>

@@ -62,7 +62,13 @@
         const qrcodeContainer = document.getElementById('qrcode');
         qrcodeContainer.innerHTML = '';
         try {
-            new QRCode(qrcodeContainer, qrUrl);
+            new QRCode(qrcodeContainer, {
+                text: qrUrl,
+                width: 256,
+                height: 256,
+                typeNumber: 15,
+                correctLevel: QRCode.CorrectLevel.L
+            });
         } catch (exception) {
             alert('Error')
         }

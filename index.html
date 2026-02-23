@@ -119,6 +119,23 @@
 
         return false;
     }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        var params = new URLSearchParams(window.location.search);
+        var mapping = {
+            iban:      'account',
+            edrpo:     'edrpo',
+            recipient: 'recipient',
+            amount:    'amount',
+            purpose:   'purpose'
+        };
+        Object.keys(mapping).forEach(function (param) {
+            var value = params.get(param);
+            if (value !== null) {
+                document.getElementById(mapping[param]).value = value;
+            }
+        });
+    });
 </script>
 </body>
 </html>

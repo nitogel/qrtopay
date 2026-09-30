@@ -8,118 +8,49 @@
 </head>
 <body class="bg-gray-100 flex items-center justify-center min-h-screen">
 <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
-    <form onsubmit="return generateQRCode(event)">
+    <form onsubmit="return false">
         <h1 class="text-2xl font-bold mb-4 text-center">QR-код для переказу</h1>
         <div class="mb-4">
             <label for="account" class="block text-gray-700">IBAN</label>
-            <input type="text" id="account" placeholder="UA..."
+            <input type="text" id="account" placeholder="UA..." maxlength="29"
                    class="w-full p-2 border border-gray-300 rounded mt-1" required>
         </div>
         <div class="mb-4">
             <label for="edrpo" class="block text-gray-700">ЄДРПОУ / РНОКПП</label>
-            <input type="text" id="edrpo" placeholder="Код отримувача"
+            <input type="text" id="edrpo" placeholder="Код отримувача" maxlength="10"
                    class="w-full p-2 border border-gray-300 rounded mt-1" required>
         </div>
         <div class="mb-4">
             <label for="recipient" class="block text-gray-700">Отримувач</label>
-            <input type="text" id="recipient" placeholder="ПІБ або назва організації"
+            <input type="text" id="recipient" placeholder="ПІБ або назва організації" maxlength="140"
                    class="w-full p-2 border border-gray-300 rounded mt-1" required>
         </div>
         <div class="mb-4">
             <label for="amount" class="block text-gray-700">Сума (UAH)</label>
-            <input type="number" min="0.01" step="0.01" id="amount" placeholder="0.01"
+            <input type="number" min="0.01" step="0.01" max="999999999.99" id="amount" placeholder="0.01"
                    class="w-full p-2 border border-gray-300 rounded mt-1" required>
         </div>
         <div class="mb-4">
             <label for="purpose" class="block text-gray-700">Призначення платежу</label>
             <textarea id="purpose" placeholder="Призначення платежу"
                       class="w-full p-2 border border-gray-300 rounded mt-1"
-                      maxlength="140" rows="3" required></textarea>
+                      maxlength="420" rows="3" required></textarea>
         </div>
-        <button type="submit"
-                class="w-full bg-blue-500 text-white py-2 rounded mt-4 hover:bg-blue-600">
-            Згенерувати QR-код
-        </button>
-        <p id="error-msg" class="mt-3 text-red-600 text-sm text-center hidden"></p>
         <div id="qrcode" class="mt-8 flex justify-center"></div>
         <p id="byte-count" class="mt-2 text-gray-500 text-xs text-center hidden"></p>
     </form>
+    <p class="mt-6 text-gray-400 text-xs text-center">
+        Версія формату 002 —
+        <a href="https://zakon.rada.gov.ua/laws/show/v0097500-25#n16" target="_blank" rel="noopener"
+           class="underline hover:text-gray-600">Постанова НБУ № 97 від 19.08.2025</a>
+    </p>
+    <p class="mt-2 text-gray-400 text-xs text-center">
+        Ця сторінка не пов'язана з жодним банком, Національним банком України чи платіжною системою
+        і не здійснює переказів — вона лише формує QR-код за відкритим стандартом.
+    </p>
 </div>
 <script src="./qrcode.bundle.js"></script>
 <script>
-    function showError(msg) {
-        const el = document.getElementById('error-msg');
-        el.textContent = msg;
-        el.classList.remove('hidden');
-    }
-
-    function clearError() {
-        const el = document.getElementById('error-msg');
-        el.textContent = '';
-        el.classList.add('hidden');
-    }
-
-    function generateQRCode(event) {
-        event.preventDefault();
-        clearError();
-
-        const account   = document.getElementById('account').value.trim();
-        const edrpo     = document.getElementById('edrpo').value.trim();
-        const recipient = document.getElementById('recipient').value.trim();
-        const amount    = document.getElementById('amount').value;
-        const purpose   = document.getElementById('purpose').value.trim();
-
-        // Strip trailing decimal zeros: "100.00" → "100", "576.45" → "576.45"
-        const formattedAmount = parseFloat(amount).toString();
-
-        // NBU QR payload — 13 fields, each terminated by \n (LF), in this order:
-        // BCD / version / encoding / function / BIC(empty) /
-        // recipient / IBAN / UAH{amount} / edrpo / goal(empty) / reference(empty) /
-        // purpose / display(empty)
-        const dataStr = [
-            'BCD', '001', '1', 'UCT', '',
-            recipient, account, `UAH${formattedAmount}`,
-            edrpo, '', '', purpose, ''
-        ].join('\n') + '\n';
-
-        const utf8Bytes = new TextEncoder().encode(dataStr).length;
-
-        if (utf8Bytes > 331) {
-            showError(`Дані перевищують 331 байт (${utf8Bytes} б). Скоротіть призначення платежу.`);
-            return false;
-        }
-
-        const container = document.getElementById('qrcode');
-        container.innerHTML = '';
-
-        const canvas = document.createElement('canvas');
-        container.appendChild(canvas);
-
-        // NBU spec: Base64url-encode payload (URL-safe, no padding) and
-        // embed it in https://bank.gov.ua/qr/<encoded>
-        const bytes = new TextEncoder().encode(dataStr);
-        const binStr = Array.from(bytes, b => String.fromCharCode(b)).join('');
-        const b64url = btoa(binStr).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-        const qrText = 'https://bank.gov.ua/qr/' + b64url;
-
-        QRCode.toCanvas(canvas, qrText, {
-            errorCorrectionLevel: 'M',
-            width: 256,
-            margin: 2
-        }, function(err) {
-            if (err) {
-                container.innerHTML = '';
-                showError('Помилка генерації: ' + err.message);
-                return;
-            }
-            const byteEl = document.getElementById('byte-count');
-            byteEl.textContent = `Розмір даних: ${utf8Bytes} / 331 байт`;
-            byteEl.classList.remove('hidden');
-        });
-
-        return false;
-    }
-
     const paramToId = {
         iban:      'account',
         edrpo:     'edrpo',
@@ -127,6 +58,12 @@
         amount:    'amount',
         purpose:   'purpose',
     };
+
+    function showQRError(msg) {
+        const container = document.getElementById('qrcode');
+        container.innerHTML = `<p class="text-red-600 text-sm text-center">${msg}</p>`;
+        document.getElementById('byte-count').classList.add('hidden');
+    }
 
     function syncParamsToURL() {
         const params = new URLSearchParams();
@@ -138,6 +75,111 @@
         history.replaceState(null, '', query ? '?' + query : window.location.pathname);
     }
 
+    function generateQRCode() {
+        const account   = document.getElementById('account').value.trim();
+        const edrpo     = document.getElementById('edrpo').value.trim();
+        const recipient = document.getElementById('recipient').value.trim();
+        const amount    = document.getElementById('amount').value;
+        const purpose   = document.getElementById('purpose').value.trim();
+
+        // Don't render until all fields have values
+        if (!account || !edrpo || !recipient || !amount || !purpose) {
+            document.getElementById('qrcode').innerHTML = '';
+            document.getElementById('byte-count').classList.add('hidden');
+            return;
+        }
+
+        // Постанова НБУ №97 від 19.08.2025, додаток 2: рахунок — рівно 29 символів
+        if (account.length !== 29) {
+            showQRError('IBAN має містити рівно 29 символів.');
+            return;
+        }
+
+        // Ціла сума — без крапки ("UAH3"), з копійками — рівно два знаки ("UAH576.40")
+        const num = parseFloat(amount);
+        if (!(num > 0) || num > 999999999.99) {
+            showQRError('Сума має бути від 0.01 до 999999999.99.');
+            return;
+        }
+        const formattedAmount = Number.isInteger(num) ? String(num) : num.toFixed(2);
+
+        // Відкрита структура даних QR, версія формату 002 (Постанова НБУ №97,
+        // додаток 3, таблиця 2) — 13 полів, кожне завершується \n (LF):
+        // BCD / версія / кодування (1 = UTF-8) / функція UCT / BIC(порожнє) /
+        // отримувач / рахунок / UAH{сума} / код отримувача / ціль(порожнє) /
+        // reference(порожнє) / призначення / дисплей(порожнє)
+        const dataStr = [
+            'BCD', '002', '1', 'UCT', '',
+            recipient, account, `UAH${formattedAmount}`,
+            edrpo, '', '', purpose, ''
+        ].join('\n') + '\n';
+
+        // Структура даних QR — гіперпосилання: код старту застосунку +
+        // Base64URL(відкрита структура). Закодована частина ≤ 475 байтів.
+        const bytes = new TextEncoder().encode(dataStr);
+        const binStr = Array.from(bytes, b => String.fromCharCode(b)).join('');
+        const b64url = btoa(binStr).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+
+        if (b64url.length > 475) {
+            showQRError(`Дані перевищують ліміт (${b64url.length} / 475 байт). Скоротіть призначення платежу.`);
+            return;
+        }
+
+        const qrText = 'https://bank.gov.ua/qr/' + b64url;
+
+        const container = document.getElementById('qrcode');
+        container.innerHTML = '';
+
+        const canvas = document.createElement('canvas');
+        container.appendChild(canvas);
+
+        // Версія QR 10–17, корекція помилок "M" ("L" заборонено, бо знак гривні
+        // для формату 002 обов'язковий — додаток 1, п. 13)
+        let version;
+        try {
+            version = Math.max(10, QRCode.create(qrText, { errorCorrectionLevel: 'M' }).version);
+        } catch (e) {
+            showQRError('Помилка генерації: ' + e.message);
+            return;
+        }
+
+        QRCode.toCanvas(canvas, qrText, {
+            errorCorrectionLevel: 'M',
+            version: version,
+            width: 256,
+            margin: 2
+        }, function(err) {
+            if (err) {
+                showQRError('Помилка генерації: ' + err.message);
+                return;
+            }
+            drawHryvniaSign(canvas, version);
+            const byteEl = document.getElementById('byte-count');
+            byteEl.textContent = `Розмір закодованих даних: ${b64url.length} / 475 байт`;
+            byteEl.classList.remove('hidden');
+        });
+    }
+
+    // Діаметр фонового кола в модулях залежно від версії QR (додаток 1, п. 11)
+    const CIRCLE_MODULES = { 10: 17, 11: 19, 12: 19, 13: 21, 14: 23, 15: 23, 16: 25, 17: 25 };
+
+    function drawHryvniaSign(canvas, version) {
+        const moduleSize = canvas.width / (version * 4 + 17 + 4); // +4 — поле по 2 модулі з боків
+        const r = CIRCLE_MODULES[version] * moduleSize / 2;
+        const c = canvas.width / 2;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.arc(c, c, r, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.fillStyle = '#000';
+        // Знак вписано в коло, на 4 модулі менше від фонового (додаток 1, п. 12)
+        ctx.font = 'bold ' + (2 * r - 4 * moduleSize) + 'px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('₴', c, c);
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
         // Pre-fill from URL
         const params = new URLSearchParams(window.location.search);
@@ -146,10 +188,16 @@
             if (value !== null) document.getElementById(id).value = value;
         }
 
-        // Keep URL in sync as user edits
+        // Re-generate QR and sync URL on every input change
         for (const id of Object.values(paramToId)) {
-            document.getElementById(id).addEventListener('input', syncParamsToURL);
+            document.getElementById(id).addEventListener('input', function () {
+                syncParamsToURL();
+                generateQRCode();
+            });
         }
+
+        // Generate on load if pre-filled from URL
+        generateQRCode();
     });
 </script>
 </body>

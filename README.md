@@ -74,7 +74,7 @@ Constraints:
 
 ## Dependencies
 
-- [Tailwind CSS](https://tailwindcss.com/) 2.2.19 — loaded from CDN
+- [Tailwind CSS](https://tailwindcss.com/) 2.2.19 — only the used utility classes, inlined in `index.html`
 - [node-qrcode](https://github.com/soldair/node-qrcode) — bundled as `qrcode.bundle.js` (`npm run build`)
 
 ## Specification

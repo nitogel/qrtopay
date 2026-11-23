@@ -3,13 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QR-код для переказу (НБУ)</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <title>Генератор QR-коду для оплати за IBAN — стандарт НБУ</title>
+    <meta name="description" content="Безкоштовно створіть QR-код для переказу коштів за IBAN за стандартом НБУ (Постанова № 97, формат 002). Сканується застосунками українських банків. Дані не залишають ваш браузер.">
+    <link rel="canonical" href="https://nitogel.github.io/qrtopay/">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%82%B4%3C/text%3E%3C/svg%3E">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="uk_UA">
+    <meta property="og:url" content="https://nitogel.github.io/qrtopay/">
+    <meta property="og:title" content="Генератор QR-коду для оплати за IBAN — стандарт НБУ">
+    <meta property="og:description" content="Створіть QR-код для переказу за IBAN, який сканують застосунки українських банків.">
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Генератор QR-коду для переказу (НБУ)",
+        "url": "https://nitogel.github.io/qrtopay/",
+        "description": "Створення QR-коду для кредитового переказу за IBAN за стандартом НБУ (Постанова № 97, формат 002).",
+        "applicationCategory": "FinanceApplication",
+        "operatingSystem": "Any",
+        "inLanguage": "uk",
+        "isAccessibleForFree": true,
+        "offers": {"@type": "Offer", "price": "0", "priceCurrency": "UAH"}
+    }
+    </script>
+    <!-- Only the Tailwind 2.2.19 utilities this page uses (the full CDN file is ~3 MB and render-blocking).
+         New utility class in the markup → add its rule here. -->
+    <style>
+        *, ::before, ::after { box-sizing: border-box; border: 0 solid #e5e7eb; }
+        html { line-height: 1.5; -webkit-text-size-adjust: 100%;
+               font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif; }
+        body { margin: 0; line-height: inherit; }
+        h1, h2, p { margin: 0; font-size: inherit; font-weight: inherit; }
+        a { color: inherit; text-decoration: inherit; }
+        input, textarea { font: inherit; line-height: inherit; color: inherit; margin: 0; padding: 0; }
+        textarea { resize: vertical; }
+        input::placeholder, textarea::placeholder { color: #9ca3af; opacity: 1; }
+        canvas { display: block; vertical-align: middle; }
+
+        .block { display: block; }
+        .flex { display: flex; }
+        .hidden { display: none; }
+        .items-center { align-items: center; }
+        .justify-center { justify-content: center; }
+        .w-full { width: 100%; }
+        .max-w-md { max-width: 28rem; }
+        .min-h-screen { min-height: 100vh; }
+        .p-2 { padding: .5rem; }
+        .p-8 { padding: 2rem; }
+        .mb-2 { margin-bottom: .5rem; }
+        .mb-4 { margin-bottom: 1rem; }
+        .mt-1 { margin-top: .25rem; }
+        .mt-2 { margin-top: .5rem; }
+        .mt-6 { margin-top: 1.5rem; }
+        .mt-8 { margin-top: 2rem; }
+        .bg-gray-100 { background-color: #f3f4f6; }
+        .bg-white { background-color: #fff; }
+        .border { border-width: 1px; }
+        .border-gray-300 { border-color: #d1d5db; }
+        .rounded { border-radius: .25rem; }
+        .rounded-lg { border-radius: .5rem; }
+        .shadow-lg { box-shadow: 0 10px 15px -3px rgba(0,0,0,.1), 0 4px 6px -2px rgba(0,0,0,.05); }
+        .text-xs { font-size: .75rem; line-height: 1rem; }
+        .text-sm { font-size: .875rem; line-height: 1.25rem; }
+        .text-2xl { font-size: 1.5rem; line-height: 2rem; }
+        .font-semibold { font-weight: 600; }
+        .font-bold { font-weight: 700; }
+        .text-center { text-align: center; }
+        .underline { text-decoration: underline; }
+        .text-gray-400 { color: #9ca3af; }
+        .text-gray-500 { color: #6b7280; }
+        .text-gray-600 { color: #4b5563; }
+        .text-gray-700 { color: #374151; }
+        .text-gray-800 { color: #1f2937; }
+        .text-red-600 { color: #dc2626; }
+        .hover\:text-gray-600:hover { color: #4b5563; }
+    </style>
 </head>
 <body class="bg-gray-100 flex items-center justify-center min-h-screen">
 <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
     <form onsubmit="return false">
-        <h1 class="text-2xl font-bold mb-4 text-center">QR-код для переказу</h1>
+        <h1 class="text-2xl font-bold mb-4 text-center">Генератор QR-коду для оплати за IBAN</h1>
         <div class="mb-4">
             <label for="account" class="block text-gray-700">IBAN</label>
             <input type="text" id="account" placeholder="UA..." maxlength="29"
@@ -39,10 +112,29 @@
         <div id="qrcode" class="mt-8 flex justify-center"></div>
         <p id="byte-count" class="mt-2 text-gray-500 text-xs text-center hidden"></p>
     </form>
+    <section class="mt-8 text-gray-600 text-sm">
+        <h2 class="font-semibold text-gray-800 mb-2">Як це працює</h2>
+        <p class="mb-2">
+            Введіть IBAN, код ЄДРПОУ або РНОКПП, отримувача, суму та призначення платежу — QR-код
+            з'явиться автоматично. Платник сканує його камерою або застосунком свого банку, і всі
+            реквізити підставляються у платіж без ручного введення.
+        </p>
+        <p class="mb-2">
+            Код формується за стандартом Національного банку України для кредитових переказів
+            (формат 002) з обов'язковим знаком ₴ у центрі. Підходить для рахунків на оплату,
+            комунальних платежів, збору донатів та оплати послуг ФОП.
+        </p>
+        <p>
+            Усі дані обробляються лише у вашому браузері й нікуди не надсилаються. Посиланням на
+            сторінку із заповненими полями можна поділитися — реквізити зберігаються в адресі.
+        </p>
+    </section>
     <p class="mt-6 text-gray-400 text-xs text-center">
         Версія формату 002 —
         <a href="https://zakon.rada.gov.ua/laws/show/v0097500-25#n16" target="_blank" rel="noopener"
            class="underline hover:text-gray-600">Постанова НБУ № 97 від 19.08.2025</a>
+        · <a href="https://github.com/nitogel/qrtopay" target="_blank" rel="noopener"
+             class="underline hover:text-gray-600">GitHub</a>
     </p>
     <p class="mt-2 text-gray-400 text-xs text-center">
         Ця сторінка не пов'язана з жодним банком, Національним банком України чи платіжною системою
